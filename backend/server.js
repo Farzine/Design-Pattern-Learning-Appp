@@ -1,48 +1,48 @@
 require('dotenv').config();
 const express = require('express');
+const connectDB = require('./config/db');
+const config = require('config');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const cors = require('cors'); 
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
-const frontUrl = process.env.NEXT_PUBLIC_APP_FRONTEND_URL;
 
-const { MONGO_URI } = require('./config/config');
-
-
-const corsOptions ={
-  origin:`${frontUrl}`, 
-  methods:['GET','POST','PUT','DELETE'],
-  credentials:true,            
-  optionSuccessStatus:200,
-}
+const errorHandler = require('./middlewares/errorHandler');
+const rateLimiter = require('./middlewares/rateLimiter');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const designPatternRoutes = require('./routes/designPatternRoutes');
+const practiceRoutes = require('./routes/practiceRoutes');
+const socialRoutes = require('./routes/socialRoutes');
+const communicationRoutes = require('./routes/communicationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
-const PORT = 5000;
 
-app.use(cors(corsOptions));
+// Connect Database
+connectDB();
 
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
+// Init Middleware
 app.use(express.json());
-app.use(cookieParser());
+app.use(rateLimiter);
+
+// Define Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/design-patterns', designPatternRoutes);
+app.use('/api/design-patterns', practiceRoutes); // Nested routes
+app.use('/api', socialRoutes);
+app.use('/api', communicationRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// Error Handler Middleware
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
 
-
-app.get('/', (req, res) => {
-  res.send('Welcome to ARCES_2024');
-});
-
-mongoose.connect(MONGO_URI)
-  .then(async () => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);
-  });
+//https://documenter.getpostman.com/view/32714993/2sAYBbd8cG
