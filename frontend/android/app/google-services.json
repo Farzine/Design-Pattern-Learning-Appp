@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1035139937771",
+    "project_id": "dpla-13763",
+    "storage_bucket": "dpla-13763.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035139937771:android:aac9de643c2c16f08495ae",
+        "android_client_info": {
+          "package_name": "com.example.dpla"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI2IuPzsjA4g-nIOtmYuxW8u_qg4qkX38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
