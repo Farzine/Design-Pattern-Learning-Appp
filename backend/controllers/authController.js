@@ -5,17 +5,36 @@ const config = require('config');
 const User = require('../models/User');
 
 exports.register = async (req, res, next) => {
+  console.log('Register request data:', req.body); // Debugging
+
   const { name, email, password, birthdate, location } = req.body;
 
   try {
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+    // Validate location as GeoJSON Point
+    if (
+      !location ||
+      location.type !== 'Point' ||
+      !Array.isArray(location.coordinates) ||
+      location.coordinates.length !== 2 ||
+      typeof location.coordinates[0] !== 'number' ||
+      typeof location.coordinates[1] !== 'number'
+    ) {
+      return res.status(400).json({ message: 'Invalid location data' });
     }
 
+    const [longitude, latitude] = location.coordinates;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
+    // Create new user with default points
     user = new User({
       name,
       email,
@@ -23,18 +42,21 @@ exports.register = async (req, res, next) => {
       birthdate,
       location: {
         type: 'Point',
-        coordinates: [location.longitude, location.latitude],
+        coordinates: [longitude, latitude],
       },
+      points: 0, // Initialize points
     });
 
     await user.save();
 
+    // Create JWT payload
     const payload = {
       user: {
         id: user.id,
       },
     };
 
+    // Sign JWT and respond
     jwt.sign(payload, config.get('jwtSecret'), { expiresIn: '3h' }, (err, token) => {
       if (err) throw err;
       res.json({ token, user });
@@ -43,6 +65,8 @@ exports.register = async (req, res, next) => {
     next(err);
   }
 };
+
+
 
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;

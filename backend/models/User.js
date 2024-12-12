@@ -7,8 +7,12 @@ const UserSchema = new mongoose.Schema({
   password_hash: { type: String, required: true },
   birthdate: { type: Date },
   location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
-    coordinates: { type: [Number], default: [0, 0] },
+    type: { type: String, enum: ['Point'],required: true },
+    coordinates: { type: [Number],required: true, },
+  },
+  points: {
+    type: Number,
+    default: 0, // Default value for points
   },
   profile_picture_url: { type: String },
   created_at: { type: Date, default: Date.now },

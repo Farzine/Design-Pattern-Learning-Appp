@@ -19,10 +19,18 @@ const socialRoutes = require('./routes/socialRoutes');
 const communicationRoutes = require('./routes/communicationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
+const frontUrl = process.env.NEXT_PUBLIC_APP_FRONTEND_URL;
+
 const app = express();
 
 // Connect Database
 connectDB();
+const corsOptions ={
+    origin:`*`, 
+    methods:['GET','POST','PUT','DELETE'],
+    credentials:true,            
+    optionSuccessStatus:200,
+  }
 
 // Init Middleware
 app.use(express.json());
