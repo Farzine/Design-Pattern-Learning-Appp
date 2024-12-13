@@ -1,14 +1,16 @@
 
-//register screen
+// lib/screens/auth/register_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
-import 'package:dpla/providers/auth_provider.dart';
-import 'package:dpla/utils/geocoding_utils.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/geocoding_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../routes/app_routes.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   static const routeName = '/register';
@@ -22,32 +24,74 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controllers for form fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
 
   DateTime? _selectedBirthdate;
-
-  LatLng _selectedLocation = LatLng(37.7749, -122.4194); // Default to San Francisco
+  LatLng _selectedLocation = const LatLng(37.7749, -122.4194); // Default location (San Francisco)
   String _selectedAddress = 'Fetching location...';
 
-  bool _isSubmitting = false;
+  bool _isSubmitting = false; // Indicates if form submission is in progress
+  bool _isMapLoading = true; // Indicates if the map is still loading
+  GoogleMapController? _mapController; // Controller for GoogleMap
+
+  Set<Marker> _markers = {}; // Set of markers on the map
 
   @override
   void initState() {
     super.initState();
+    _initializeMarker();
     _requestLocationPermissionAndFetchLocation();
   }
 
+  @override
+  void dispose() {
+    // Dispose controllers to free up resources
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _birthdateController.dispose();
+    super.dispose();
+  }
+
+  /// Initializes the marker at the default location
+  void _initializeMarker() {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('selected_location'),
+        position: _selectedLocation,
+        draggable: true,
+        onDragEnd: (newPosition) async {
+          setState(() {
+            _selectedLocation = newPosition;
+            _selectedAddress = 'Fetching address...';
+          });
+          // Fetch address for the new position
+          String address = await GeocodingUtils.getAddressFromLatLng(
+            newPosition.latitude,
+            newPosition.longitude,
+          );
+          setState(() {
+            _selectedAddress = address;
+          });
+        },
+      ),
+    );
+  }
+
+  /// Requests location permission and fetches current location if granted
   Future<void> _requestLocationPermissionAndFetchLocation() async {
     try {
       var status = await Permission.location.request();
       if (status.isDenied || status.isPermanentlyDenied) {
+        // Inform the user that location permission is required
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Location permission is required.')),
         );
-        openAppSettings();
+        openAppSettings(); // Opens app settings for the user to grant permission
         return;
       }
 
@@ -55,12 +99,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         await _fetchCurrentLocation();
       }
     } catch (e) {
+      // Handle any errors during permission request
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to fetch location: $e')),
       );
     }
   }
 
+  /// Fetches the current location of the user
   Future<void> _fetchCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -68,14 +114,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         throw Exception('Location services are disabled.');
       }
 
+      // Get the current position with high accuracy
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
 
       setState(() {
         _selectedLocation = LatLng(position.latitude, position.longitude);
         _selectedAddress = 'Fetching address...';
+        _markers.clear();
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('selected_location'),
+            position: _selectedLocation,
+            draggable: true,
+            onDragEnd: (newPosition) async {
+              setState(() {
+                _selectedLocation = newPosition;
+                _selectedAddress = 'Fetching address...';
+              });
+              // Fetch address for the new position
+              String address = await GeocodingUtils.getAddressFromLatLng(
+                newPosition.latitude,
+                newPosition.longitude,
+              );
+              setState(() {
+                _selectedAddress = address;
+              });
+            },
+          ),
+        );
       });
 
+      // Fetch the address for the current location
       String address = await GeocodingUtils.getAddressFromLatLng(
         position.latitude,
         position.longitude,
@@ -84,13 +154,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       setState(() {
         _selectedAddress = address;
       });
+
+      // Move the camera to the current location
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLng(_selectedLocation),
+      );
     } catch (e) {
+      // Handle any errors during location fetching
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to get location: $e')),
       );
+    } finally {
+      setState(() {
+        _isMapLoading = false; // Hide loader once location is fetched
+      });
     }
   }
 
+  /// Opens a date picker dialog for the user to select their birthdate
   Future<void> _selectBirthdate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -106,26 +187,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  /// Handles the registration process
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return; // Validate form fields
 
-    if (_selectedAddress == 'Fetching location...') {
+    if (_selectedAddress == 'Fetching address...') {
+      // Ensure the address has been fetched
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please wait for location to be fetched')),
       );
       return;
     }
 
-     // Additional validation to ensure coordinates are valid
-  if (_selectedLocation.latitude.isNaN || _selectedLocation.longitude.isNaN) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Invalid location selected')),
-    );
-    return;
-  }
-
     setState(() {
-      _isSubmitting = true;
+      _isSubmitting = true; // Show loading indicator on submit button
     });
 
     try {
@@ -133,223 +208,333 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       final String email = _emailController.text.trim();
       final String password = _passwordController.text.trim();
       final DateTime birthdate = _selectedBirthdate!;
-      final double latitude = _selectedLocation.latitude;
-      final double longitude = _selectedLocation.longitude;
 
+      // Call the register method from AuthProvider
       await ref.read(authProvider.notifier).register(
             name,
             email,
             password,
             birthdate,
-            latitude,
-            longitude,
+            _selectedLocation.latitude,
+            _selectedLocation.longitude,
           );
 
       final authState = ref.read(authProvider);
 
       if (authState.user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // If registration is successful, set the onboarding flag and navigate to home
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('seenOnboarding', true);
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      } else if (authState.error != null) {
+        // Show error message if registration failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authState.error!)),
+        );
       }
     } catch (e) {
+      // Handle any unexpected errors during registration
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Registration failed: $e')),
       );
     } finally {
       setState(() {
-        _isSubmitting = false;
+        _isSubmitting = false; // Hide loading indicator
       });
     }
   }
 
-  void _onMapTap(LatLng latlng) async {
+  /// Handles map taps to select a new location
+  Future<void> _onMapTapped(LatLng latlng) async {
     setState(() {
       _selectedLocation = latlng;
       _selectedAddress = 'Fetching address...';
+      _markers.clear();
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('selected_location'),
+          position: _selectedLocation,
+          draggable: true,
+          onDragEnd: (newPosition) async {
+            setState(() {
+              _selectedLocation = newPosition;
+              _selectedAddress = 'Fetching address...';
+            });
+            // Fetch address for the new position
+            String address = await GeocodingUtils.getAddressFromLatLng(
+              newPosition.latitude,
+              newPosition.longitude,
+            );
+            setState(() {
+              _selectedAddress = address;
+            });
+          },
+        ),
+      );
     });
 
-    String address = await GeocodingUtils.getAddressFromLatLng(latlng.latitude, latlng.longitude);
+    // Fetch the address for the new location
+    String address = await GeocodingUtils.getAddressFromLatLng(
+      latlng.latitude,
+      latlng.longitude,
+    );
 
     setState(() {
       _selectedAddress = address;
     });
+
+    // Move camera to the new location
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLng(_selectedLocation),
+    );
+  }
+
+  /// Navigates to the Login Screen
+  void _navigateToLogin() {
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
+      backgroundColor: Colors.purple.shade100, // Light purple background
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            Icon(
-              Icons.design_services,
-              size: 100,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 20),
-            Form(
-              key: _formKey,
+            // Top Gradient Section with Welcome Text
+            Container(
+              height: MediaQuery.of(context).size.height * 0.25, // 25% of screen height
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFF261FF), Color(0xFFC81ADE)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
               child: Column(
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email Address',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                      if (!emailRegex.hasMatch(value.trim())) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.trim().length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _birthdateController,
-                    decoration: const InputDecoration(
-                      labelText: 'Birthdate',
-                      prefixIcon: Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.arrow_drop_down),
-                    ),
-                    readOnly: true,
-                    onTap: () => _selectBirthdate(context),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please select your birthdate';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
                   Text(
-                    'Select Your Location',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 300,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
+                    "Welcome",
+                    style: TextStyle(
+                      fontSize: 30,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: FlutterMap(
-                      options: MapOptions(
-                        initialCenter: _selectedLocation,
-                        minZoom: 13.0,
-                        onTap: (tapPosition, point) => _onMapTap(point),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Sign Up to Continue",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Registration Form
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey, // Form key for validation
+                child: Column(
+                  children: [
+                    const SizedBox(height: 30), // Spacing
+
+                    // Full Name Input Field
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: "User Name",
+                        prefixIcon: const Icon(Icons.person),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none, // Remove border
+                        ),
                       ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          subdomains: ['a', 'b', 'c'],
-                          userAgentPackageName: 'com.example.dpla',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20), // Spacing
+
+                    // Email Input Field
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: "E-mail",
+                        prefixIcon: const Icon(Icons.email),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none, // Remove border
                         ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              width: 80.0,
-                              height: 80.0,
-                              point: _selectedLocation,
-                              child: const Icon(
-                                Icons.location_on,
-                                color: Colors.red,
-                                size: 40,
-                              ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                        if (!emailRegex.hasMatch(value.trim())) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20), // Spacing
+
+                    // Password Input Field
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: "Password",
+                        prefixIcon: const Icon(Icons.lock),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none, // Remove border
+                        ),
+                      ),
+                      obscureText: true, // Hide password
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (value.trim().length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20), // Spacing
+
+                    // Birthdate Input Field
+                    TextFormField(
+                      controller: _birthdateController,
+                      decoration: InputDecoration(
+                        labelText: "Select Birthdate",
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none, // Remove border
+                        ),
+                        suffixIcon: const Icon(Icons.arrow_drop_down), // Dropdown icon
+                      ),
+                      readOnly: true, // Prevent manual editing
+                      onTap: () => _selectBirthdate(context), // Open date picker
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please select your birthdate';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20), // Spacing
+
+                    // Title for Location Selection
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Select Location",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10), // Spacing
+
+                    // Google Maps Section with Loader
+                    SizedBox(
+                      height: 300, // Fixed height for the map
+                      child: Stack(
+                        children: [
+                          GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: _selectedLocation,
+                              zoom: 14.0,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _selectedAddress,
-                            style: const TextStyle(fontSize: 16),
+                            onMapCreated: (GoogleMapController controller) {
+                              _mapController = controller;
+                              setState(() {
+                                _isMapLoading = false; // Hide loader once map is ready
+                              });
+                            },
+                            markers: _markers, // Current markers
+                            onTap: _onMapTapped, // Handle map taps
+                            myLocationEnabled: true, // Show user's location
+                            myLocationButtonEnabled: true, // Show location button
                           ),
-                        ),
-                      ],
+                          if (_isMapLoading)
+                            const Center(
+                              child: CircularProgressIndicator(), // Loader while map is loading
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _register,
+                    const SizedBox(height: 10), // Spacing
+
+                    // Display Selected Address
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50, // Light blue background
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(color: Colors.blue.shade200), // Border color
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on, color: Colors.blue), // Location icon
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _selectedAddress, // Display fetched address
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24), // Spacing
+
+                    // Submit Button
+                    ElevatedButton(
+                      onPressed: _isSubmitting ? null : _register, // Disable button if submitting
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
+                        shape: const CircleBorder(), // Circular button
+                        padding: const EdgeInsets.all(20),
+                        backgroundColor: Colors.purple, // Button color
                       ),
                       child: _isSubmitting
                           ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white), // Loader inside button
                             )
-                          : const Text(
-                              'Register',
-                              style: TextStyle(fontSize: 18),
+                          : const Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: 30,
                             ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -362,7 +547,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ],
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -371,3 +557,4 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
+

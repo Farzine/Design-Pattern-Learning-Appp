@@ -1,8 +1,11 @@
 // lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/routes/app_routes.dart';
 import 'package:dpla/config/theme.dart';
+import 'screens/onboarding_screen.dart';
+import 'splash_screen.dart';
 
 void main() {
   runApp(
@@ -22,7 +25,7 @@ class DesignPatternApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialRoute: AppRoutes.initialRoute,
+      initialRoute: AppRoutes.splash, // Set initial route to Splash
       routes: AppRoutes.routes,
       debugShowCheckedModeBanner: false,
     );
