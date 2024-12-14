@@ -30,14 +30,13 @@ exports.getPracticeQuestions = async (req, res, next) => {
   }
 };
 
-
-
-
 exports.submitAnswers = async (req, res, next) => {
   try {
     const designPatternId = req.params.id;
     const userId = req.user.id;
     const { answers } = req.body;
+
+    console.log('Answers:', answers);
 
     // Validate the designPatternId
     if (!mongoose.Types.ObjectId.isValid(designPatternId)) {
@@ -70,16 +69,18 @@ exports.submitAnswers = async (req, res, next) => {
     answers.forEach((userAnswer, index) => {
       const question = questions[index];
       const correctAnswer = question.correctAnswer.toUpperCase();
-      const userSelected = userAnswer.selectedOption.toUpperCase();
 
-      if (!['A', 'B', 'C', 'D'].includes(userSelected)) {
+      // Check if the userAnswer is valid
+      if (typeof userAnswer !== 'string' || !['A', 'B', 'C', 'D'].includes(userAnswer.toUpperCase())) {
         feedback.push({
           question: question.question,
           correct: false,
-          message: `Invalid option selected: ${userSelected}.`,
+          message: 'Invalid or missing answer.',
         });
         return;
       }
+
+      const userSelected = userAnswer.toUpperCase();
 
       if (userSelected === correctAnswer) {
         correctCount += 1;
@@ -98,20 +99,24 @@ exports.submitAnswers = async (req, res, next) => {
     });
 
     // Calculate progress increment
-    const progressIncrement = correctCount * 20; // 20% per correct answer
-    const totalProgress = Math.min(progressIncrement, 100); // Cap at 100%
+    const progressIncrement = (correctCount / questions.length) * 100;
 
     // Update UserProgress
     let progress = await UserProgress.findOne({ user_id: userId, design_pattern_id: designPatternId });
     if (!progress) {
-      progress = new UserProgress({ user_id: userId, design_pattern_id: designPatternId });
+      progress = new UserProgress({
+        user_id: userId,
+        design_pattern_id: designPatternId,
+        practice_completed: 0,
+        points: 0,
+        progress: 0,
+        learning_completed: false,
+      });
     }
 
     progress.practice_completed += correctCount;
     progress.points += correctCount * 10; // Example points: 10 points per correct answer
-
-    // Update the progress percentage
-    progress.progress = Math.min((progress.practice_completed / 5) * 100, 100);
+    progress.progress = Math.min(progress.progress + progressIncrement, 100);
 
     // If all questions are answered correctly, set learning_completed to true
     if (progress.progress === 100) {
@@ -130,6 +135,8 @@ exports.submitAnswers = async (req, res, next) => {
       progress: progress.progress,
     });
   } catch (err) {
+    console.error('Error in submitAnswers:', err.message);
     next(err);
   }
 };
+

@@ -139,7 +139,7 @@ AnimatedContainer(
       player: YoutubePlayer(
         controller: _youtubeController,
         showVideoProgressIndicator: true,
-        progressIndicatorColor: Colors.redAccent,
+        progressIndicatorColor: Colors.purpleAccent,
       ),
       builder: (context, player) {
         return Scaffold(
@@ -151,6 +151,7 @@ AnimatedContainer(
             ),
             centerTitle: true,
             elevation: 4,
+            backgroundColor: Colors.purple.shade100,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),

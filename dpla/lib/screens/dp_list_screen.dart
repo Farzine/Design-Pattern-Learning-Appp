@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/providers/design_pattern_provider.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/screens/read_design_pattern_screen.dart';
+import 'package:dpla/screens/practice_session_screen.dart';
 
 class DpListScreen extends ConsumerWidget {
   const DpListScreen({Key? key}) : super(key: key);
@@ -106,8 +107,7 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ReadDesignPatternScreen(pattern: widget.pattern),
+                          builder: (context) => ReadDesignPatternScreen(pattern: widget.pattern),
                         ),
                       );
                     },
@@ -122,10 +122,14 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                   const SizedBox(width: 8.0),
                   ElevatedButton(
                     onPressed: () {
-                      // Implement Practice functionality
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Practice feature coming soon!'),
+                      // Navigate to Practice Session Screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PracticeSessionScreen(
+                            designPatternId: widget.pattern.id,
+                            designPatternName: widget.pattern.name,
+                          ),
                         ),
                       );
                     },
@@ -135,7 +139,7 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    child: const Text('Practice',style: TextStyle(color: Colors.white,)),
+                    child: const Text('Practice', style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
