@@ -1,13 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
-const config = require('config');
-const bodyParser = require('body-parser');
-const multer = require('multer');
-const cors = require('cors'); 
-const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-
 
 const errorHandler = require('./middlewares/errorHandler');
 const rateLimiter = require('./middlewares/rateLimiter');
@@ -18,8 +11,8 @@ const practiceRoutes = require('./routes/practiceRoutes');
 const socialRoutes = require('./routes/socialRoutes');
 const communicationRoutes = require('./routes/communicationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const progressRoutes = require('./routes/progressRoutes');
 
-const frontUrl = process.env.NEXT_PUBLIC_APP_FRONTEND_URL;
 
 const app = express();
 
@@ -44,6 +37,7 @@ app.use('/api/design-patterns', practiceRoutes); // Nested routes
 app.use('/api', socialRoutes);
 app.use('/api', communicationRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Error Handler Middleware
 app.use(errorHandler);
