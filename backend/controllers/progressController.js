@@ -1,3 +1,4 @@
+//controllers/progressController.js
 const UserProgress = require('../models/UserProgress');
 const DesignPattern = require('../models/DesignPattern');
 const mongoose = require('mongoose'); 

@@ -69,6 +69,7 @@ dependencies:
   code_text_field: ^1.1.0
   highlight: ^0.7.0
   flutter_highlight: ^0.7.0
+  fl_chart: ^0.69.2
 
 dev_dependencies:
   flutter_test:
