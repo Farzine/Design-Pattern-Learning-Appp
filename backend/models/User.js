@@ -14,7 +14,6 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0, // Default value for points
   },
-  profile_picture_url: { type: String },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
 });

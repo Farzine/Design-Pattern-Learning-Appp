@@ -8,7 +8,7 @@ class DesignPatternRepository {
   final Dio _dio;
 
   DesignPatternRepository(this._dio) {
-    _dio.options.baseUrl = 'http://10.201.51.182:5000/api';
+    _dio.options.baseUrl = 'http://10.201.40.230:5000/api';
   }
 
   Future<List<DesignPattern>> fetchDesignPatterns() async {

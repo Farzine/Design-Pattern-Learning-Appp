@@ -1,8 +1,8 @@
-//providers/design_pattern_provider.dart
+// lib/providers/design_pattern_provider.dart
+import 'package:dpla/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/repositories/design_pattern_repository.dart';
-import 'package:dio/dio.dart';
 import 'package:dpla/core/exception.dart';
 
 // Define the state for design patterns
@@ -32,11 +32,12 @@ class DesignPatternState {
 
 // Provider for DesignPatternRepository
 final designPatternRepositoryProvider = Provider<DesignPatternRepository>((ref) {
-  return DesignPatternRepository(Dio());
+  return DesignPatternRepository(ref.watch(apiClientProvider).client);
 });
 
 // StateNotifier for DesignPatternState
-final designPatternProvider = StateNotifierProvider<DesignPatternNotifier, DesignPatternState>((ref) {
+final designPatternProvider =
+    StateNotifierProvider<DesignPatternNotifier, DesignPatternState>((ref) {
   return DesignPatternNotifier(ref.watch(designPatternRepositoryProvider));
 });
 

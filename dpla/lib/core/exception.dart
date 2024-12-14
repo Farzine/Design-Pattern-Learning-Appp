@@ -3,5 +3,5 @@ class ApiException implements Exception {
   ApiException(this.message);
   
   @override
-  String toString() => message;
+  String toString() => 'ApiException: $message';
 }

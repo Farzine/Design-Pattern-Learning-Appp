@@ -1,15 +1,20 @@
+// lib/models/design_pattern.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'design_pattern.g.dart';
 
 @JsonSerializable()
 class DesignPattern {
+  @JsonKey(name: '_id')
   final String id;
   final String name;
   final String description;
+  @JsonKey(name: 'video_url')
   final String videoUrl;
   final List<Example> examples;
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
   DesignPattern({

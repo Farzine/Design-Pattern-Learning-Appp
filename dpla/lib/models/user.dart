@@ -14,9 +14,6 @@ class User {
   /// Email address of the user.
   final String email;
 
-  /// URL to the user's profile picture.
-  @JsonKey(name: 'profile_picture_url')
-  final String? profilePictureUrl;
 
   /// Birthdate of the user.
   final DateTime? birthdate;
@@ -31,7 +28,6 @@ class User {
     required this.id,
     required this.name,
     required this.email,
-    this.profilePictureUrl,
     this.birthdate,
     this.location,
     this.points = 0,

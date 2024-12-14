@@ -8,26 +8,26 @@ part of 'design_pattern.dart';
 
 DesignPattern _$DesignPatternFromJson(Map<String, dynamic> json) =>
     DesignPattern(
-      id: json['id'] as String,
+      id: json['_id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
-      videoUrl: json['videoUrl'] as String,
+      videoUrl: json['video_url'] as String,
       examples: (json['examples'] as List<dynamic>)
           .map((e) => Example.fromJson(e as Map<String, dynamic>))
           .toList(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
 
 Map<String, dynamic> _$DesignPatternToJson(DesignPattern instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      '_id': instance.id,
       'name': instance.name,
       'description': instance.description,
-      'videoUrl': instance.videoUrl,
+      'video_url': instance.videoUrl,
       'examples': instance.examples,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
     };
 
 Example _$ExampleFromJson(Map<String, dynamic> json) => Example(

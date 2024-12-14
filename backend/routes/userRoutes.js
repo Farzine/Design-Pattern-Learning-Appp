@@ -5,6 +5,15 @@ const userController = require('../controllers/userController');
 const auth = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
 
+
+// GET /api/users/me - returns the current user
+router.get('/me', auth, (req, res) => {
+  if (!req.user) {
+    return res.status(404).json({ msg: 'User not found' });
+  }
+  res.json(req.user); // req.user is set by auth middleware
+});
+
 // @route   GET /api/users/:id
 // @desc    Get user profile by ID
 // @access  Private
@@ -33,6 +42,8 @@ router.put(
 // @desc    Get list of users
 // @access  Private
 router.get('/', auth, userController.getUsers);
+
+
 
 // @route   POST /api/users/:id/follow
 // @desc    Follow a user

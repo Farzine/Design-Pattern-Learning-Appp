@@ -88,7 +88,7 @@ exports.login = async (req, res, next) => {
       },
     };
 
-    jwt.sign(payload, config.get('jwtSecret'), { expiresIn: '1h' }, (err, token) => {
+    jwt.sign(payload, config.get('jwtSecret'), { expiresIn: '2h' }, (err, token) => {
       if (err) throw err;
       res.json({ token, user });
     });

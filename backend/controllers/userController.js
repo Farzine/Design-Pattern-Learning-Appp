@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Follower = require('../models/Follower');
 
 exports.getUserById = async (req, res, next) => {
+  console.log('Fetching user by ID:', req.params.id);
   try {
     const user = await User.findById(req.params.id)
       .select('-password_hash')
@@ -18,7 +19,7 @@ exports.getUserById = async (req, res, next) => {
 };
 
 exports.updateUser = async (req, res, next) => {
-  const { name, email, birthdate, location, profile_picture } = req.body;
+  const { name, email, birthdate, location } = req.body;
 
   try {
     const updatedFields = {
@@ -31,7 +32,6 @@ exports.updateUser = async (req, res, next) => {
             coordinates: [location.longitude, location.latitude],
           }
         : undefined,
-      profile_picture_url: profile_picture,
       updated_at: Date.now(),
     };
 
