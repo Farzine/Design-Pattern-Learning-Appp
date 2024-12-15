@@ -1,9 +1,9 @@
+//main_navigation.dart
+import 'package:dpla/screens/profile_main_screen.dart';
 import 'package:flutter/material.dart';
-
 import 'screens/dashboard_screen.dart';
 import 'screens/dp_list_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/profile_screen.dart';
 import 'widgets/circular_bottom_navigation.dart';
 import 'widgets/navigation_tabs.dart';
 
@@ -33,7 +33,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const HomeScreen(),
     const DpListScreen(),
     const DashboardScreen(),
-    const ProfileScreen(),
+    const ProfileMainScreen(),
   ];
 
   @override
