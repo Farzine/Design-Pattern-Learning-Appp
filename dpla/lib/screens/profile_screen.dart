@@ -250,7 +250,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ? ElevatedButton(
                                   onPressed: () => _startEditing(userState.user!),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
+                                    backgroundColor: Colors.purple[400],
                                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(30),
@@ -267,19 +267,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ElevatedButton(
                                       onPressed: () => _saveProfile(userState.user!),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
+                                        backgroundColor: Colors.purple[400],
                                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                       ),
-                                      child: const Text('Save'),
+                                      child: const Text('Save', style: TextStyle(color: Colors.white)),
                                     ),
                                     const SizedBox(width: 20),
                                     ElevatedButton(
                                       onPressed: _cancelEditing,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.grey,
+                                        backgroundColor: Colors.green[400],
                                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                       ),
-                                      child: const Text('Cancel'),
+                                      child: const Text('Cancel', style: TextStyle(color: Colors.white)),
                                     ),
                                   ],
                                 ),

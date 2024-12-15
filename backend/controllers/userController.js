@@ -96,3 +96,39 @@ exports.unfollowUser = async (req, res, next) => {
     next(err);
   }
 };
+
+
+/**
+ * Fetch all followers of a user
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ */
+exports.getUserFollowers = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    // Validate user existence
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Find followers
+    const followers = await Follower.find({ following_id: userId })
+      .populate('follower_id', 'name email profile_picture_url') // Populate follower details
+      .select('-__v');
+
+    // Format the response
+    const formattedFollowers = followers.map((f) => ({
+      id: f.follower_id._id,
+      name: f.follower_id.name,
+      email: f.follower_id.email,
+    }));
+
+    res.json({ followers: formattedFollowers });
+  } catch (err) {
+    console.error('Error fetching followers:', err.message);
+    next(err);
+  }
+};

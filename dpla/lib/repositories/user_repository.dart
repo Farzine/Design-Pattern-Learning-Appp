@@ -44,11 +44,13 @@ class UserRepository {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
 
-    if (!decodedToken.containsKey('user') || !(decodedToken['user'] as Map).containsKey('id')) {
+    final userMap = decodedToken['user'] as Map<String, dynamic>?;
+
+    if (userMap == null || !userMap.containsKey('id')) {
       throw ApiException('Invalid token: userId not found');
     }
 
-    final userId = decodedToken['user']['id'];
+    final userId = userMap['id'];
     print('User ID: $userId');
 
     // Make an API call to fetch the user profile
@@ -67,36 +69,25 @@ class UserRepository {
   }
 }
 
-  // Future<User> fetchUserProfile() async {
-  //   try {
-  //     final response = await _dio.get('/users/me');
-  //     if (response.statusCode == 200) {
-  //       return User.fromJson(response.data);
-  //     } else {
-  //       throw ApiException('Failed to fetch user profile');
-  //     }
-  //   } catch (e) {
-  //     throw ApiException(e.toString());
-  //   }
-  // }
 
   Future<List<User>> fetchFollowing(String userId) async {
-    try {
-      final token = await TokenStorage.getToken();
-      // Assuming there's an endpoint to get following users
-      final response = await _dio.get('/users/$userId/following',
-          options: Options(headers: {'Authorization': 'Bearer $token'}));
-      if (response.statusCode == 200) {
-        return (response.data as List)
-            .map((json) => User.fromJson(json))
-            .toList();
-      } else {
-        throw ApiException('Failed to fetch following users');
-      }
-    } catch (e) {
-      throw ApiException(e.toString());
+  try {
+    final token = await TokenStorage.getToken();
+    final response = await _dio.get(
+      '/users/$userId/followers',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    if (response.statusCode == 200) {
+      final data = response.data; // Response is likely a Map
+      final followers = data['followers'] as List; // Extract the list of followers
+      return followers.map((json) => User.fromJson(json)).toList();
+    } else {
+      throw ApiException('Failed to fetch following users');
     }
+  } catch (e) {
+    throw ApiException(e.toString());
   }
+}
 
   Future<void> updateUserProfile({
     required String userId,

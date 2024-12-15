@@ -24,6 +24,8 @@ class User {
   /// Points accumulated by the user.
   final int points;
 
+  final List<User>? followers;
+
   User({
     required this.id,
     required this.name,
@@ -31,6 +33,7 @@ class User {
     this.birthdate,
     this.location,
     this.points = 0,
+    this.followers,
   });
 
   /// Creates a new `User` instance from a JSON map.

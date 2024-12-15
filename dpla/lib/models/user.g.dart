@@ -17,6 +17,9 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
           ? null
           : Location.fromJson(json['location'] as Map<String, dynamic>),
       points: (json['points'] as num?)?.toInt() ?? 0,
+      followers: (json['followers'] as List<dynamic>?)
+          ?.map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -26,6 +29,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'birthdate': instance.birthdate?.toIso8601String(),
       'location': instance.location?.toJson(),
       'points': instance.points,
+      'followers': instance.followers?.map((e) => e.toJson()).toList(),
     };
 
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
