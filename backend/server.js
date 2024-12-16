@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === 'development') {
 const corsOptions ={
     origin:'*',
     methods:['GET','POST','PUT','DELETE'],
-    credentials:true,            
+    credentials:false,            
     optionSuccessStatus:200,
   }
 

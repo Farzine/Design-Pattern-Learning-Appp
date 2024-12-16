@@ -32,6 +32,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^3.1.7",
     "openai": "^4.75.0",
-    "server": "file:"
+    "server": "file:",
+    "serverless-http": "^3.2.0"
   }
 }
