@@ -31,27 +31,57 @@ exports.getFeed = async (req, res, next) => {
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('user_id', 'name profile_picture_url')
+      .populate('user_id', 'name')
       .populate({
         path: 'likes',
         populate: { path: 'user_id', select: 'name' },
       })
       .populate({
         path: 'comments',
-        populate: { path: 'user_id', select: 'name profile_picture_url' },
+        populate: { path: 'user_id', select: 'name' },
       });
 
     // Optionally, get the total count for frontend pagination
     const totalPosts = await Post.countDocuments({ user_id: { $in: followingIds } });
+
+    // Format the response to match the required structure
+    const formattedPosts = posts.map(post => ({
+      _id: post._id,
+      user_id: {
+        name: post.user_id.name,
+      },
+      content: post.content,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+      likes: post.likes.map(like => ({
+        _id: like._id,
+        post_id: like.post_id,
+        user_id: {
+          name: like.user_id.name,
+        },
+        created_at: like.created_at,
+      })),
+      comments: post.comments.map(comment => ({
+        _id: comment._id,
+        post_id: comment.post_id,
+        user_id: {
+          name: comment.user_id.name,
+        },
+        content: comment.content,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+      })),
+    }));
 
     res.json({
       page,
       limit,
       totalPosts,
       totalPages: Math.ceil(totalPosts / limit),
-      posts,
+      posts: formattedPosts,
     });
   } catch (err) {
+    console.error('Error fetching feed:', err.message);
     next(err);
   }
 };
@@ -83,6 +113,37 @@ exports.commentOnPost = async (req, res, next) => {
     const comment = new Comment({ post_id: postId, user_id: req.user.id, content });
     await comment.save();
     res.json(comment);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// Fetch likes for a specific post
+exports.getPostLikes = async (req, res, next) => {
+  try {
+    const postId = req.params.id;
+
+    // Find all likes for the post
+    const likes = await Like.find({ post_id: postId }).populate('user_id', 'name profile_picture_url');
+
+    res.json(likes);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Fetch comments for a specific post
+exports.getPostComments = async (req, res, next) => {
+  try {
+    const postId = req.params.id;
+
+    // Find all comments for the post
+    const comments = await Comment.find({ post_id: postId })
+      .sort({ created_at: -1 }) // Sort comments by most recent
+      .populate('user_id', 'name profile_picture_url');
+
+    res.json(comments);
   } catch (err) {
     next(err);
   }

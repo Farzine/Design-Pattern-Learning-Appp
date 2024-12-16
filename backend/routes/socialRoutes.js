@@ -47,4 +47,15 @@ router.post(
   }
 );
 
+
+// @route   GET /api/posts/:id/likes
+// @desc    Get likes for a specific post
+// @access  Private
+router.get('/posts/:id/likes', auth, socialController.getPostLikes);
+
+// @route   GET /api/posts/:id/comments
+// @desc    Get comments for a specific post
+// @access  Private
+router.get('/posts/:id/comments', auth, socialController.getPostComments);
+
 module.exports = router;

@@ -40,4 +40,26 @@ class DesignPatternRepository {
       throw ApiException(e.toString());
     }
   }
+  /// Searches design patterns based on a query string using semantic search.
+  Future<List<DesignPattern>> searchDesignPatterns(String query) async {
+    try {
+      final token = await TokenStorage.getToken();
+      final response = await _dio.get('/design-patterns/search',
+          queryParameters: {'search': query},
+          options: Options(headers: {'Authorization': 'Bearer $token'}));
+
+      if (response.statusCode == 200) {
+        final data = response.data['patterns'] as List;
+        return data.map((json) => DesignPattern.fromJson(json)).toList();
+      } else {
+        throw ApiException('Failed to search design patterns');
+      }
+    } on DioError catch (e) {
+      throw ApiException(e.response?.data['msg'] ?? e.message);
+    } catch (e) {
+      throw ApiException(e.toString());
+    }
+  }
 }
+
+

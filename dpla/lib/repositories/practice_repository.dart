@@ -32,11 +32,11 @@ class PracticeRepository {
   Future<Map<String, dynamic>> submitAnswers(String patternId, List<String> answers) async {
     try {
       final token = await TokenStorage.getToken();
-      final response = await _dio.post('/design-patterns/practice/$patternId/submit', // Ensure endpoint matches backend
+      final response = await _dio.post('/design-patterns/practice/$patternId/submit',
           data: {'answers': answers},
           options: Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
-        return response.data; // Expected to be in the evaluation answer response format
+        return response.data; 
       } else {
         throw ApiException('Failed to submit answers');
       }

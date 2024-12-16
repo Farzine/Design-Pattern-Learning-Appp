@@ -56,7 +56,7 @@ class _MainNavigationState extends State<MainNavigation> {
         circleStrokeWidth: 4,
         iconsSize: 30,
         selectedIconColor: Colors.white,
-        normalIconColor: Colors.grey,
+        normalIconColor: Colors.black54,
         animationDuration: const Duration(milliseconds: 300),
         selectedCallback: (index) {
           if (index != null && index != selectedPos) {

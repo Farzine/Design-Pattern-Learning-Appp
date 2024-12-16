@@ -34,7 +34,7 @@ class _PracticeSessionScreenState extends ConsumerState<PracticeSessionScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.purple[400],
+        backgroundColor: Colors.purple[100],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

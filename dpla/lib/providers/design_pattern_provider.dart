@@ -57,4 +57,21 @@ class DesignPatternNotifier extends StateNotifier<DesignPatternState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
+
+  /// Searches design patterns based on a query string.
+  Future<void> searchDesignPatterns(String query) async {
+    if (query.isEmpty) {
+      await loadDesignPatterns();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final results = await _repository.searchDesignPatterns(query);
+      state = state.copyWith(patterns: results, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
 }

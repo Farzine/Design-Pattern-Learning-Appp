@@ -32,6 +32,14 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'followers': instance.followers?.map((e) => e.toJson()).toList(),
     };
 
+UserRef _$UserRefFromJson(Map<String, dynamic> json) => UserRef(
+      name: json['name'] as String,
+    );
+
+Map<String, dynamic> _$UserRefToJson(UserRef instance) => <String, dynamic>{
+      'name': instance.name,
+    };
+
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
       type: json['type'] as String,
       coordinates: (json['coordinates'] as List<dynamic>)

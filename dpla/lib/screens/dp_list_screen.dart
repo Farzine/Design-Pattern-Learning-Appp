@@ -6,22 +6,51 @@ import 'package:dpla/providers/design_pattern_provider.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/screens/read_design_pattern_screen.dart';
 import 'package:dpla/screens/practice_session_screen.dart';
+import '../widgets/custom_nav_bar.dart';
+import 'dart:async';
 
-class DpListScreen extends ConsumerWidget {
+class DpListScreen extends ConsumerStatefulWidget {
   const DpListScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _DpListScreenState createState() => _DpListScreenState();
+}
+
+class _DpListScreenState extends ConsumerState<DpListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to search input changes
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      final query = _searchController.text.trim();
+      ref.read(designPatternProvider.notifier).searchDesignPatterns(query);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final designPatternState = ref.watch(designPatternProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Design Patterns',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.purple[100],
+      appBar: CustomNavBar(
+        logoPath: 'assets/logo.png', // Path to your logo asset
+        searchController: _searchController,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,13 +58,15 @@ class DpListScreen extends ConsumerWidget {
             ? const Center(child: CircularProgressIndicator())
             : designPatternState.error != null
                 ? Center(child: Text(designPatternState.error!))
-                : ListView.builder(
-                    itemCount: designPatternState.patterns.length,
-                    itemBuilder: (context, index) {
-                      final pattern = designPatternState.patterns[index];
-                      return DesignPatternCard(pattern: pattern);
-                    },
-                  ),
+                : designPatternState.patterns.isEmpty
+                    ? const Center(child: Text('No design patterns found.'))
+                    : ListView.builder(
+                        itemCount: designPatternState.patterns.length,
+                        itemBuilder: (context, index) {
+                          final pattern = designPatternState.patterns[index];
+                          return DesignPatternCard(pattern: pattern);
+                        },
+                      ),
       ),
     );
   }

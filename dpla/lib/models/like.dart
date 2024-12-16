@@ -1,32 +1,27 @@
-// lib/models/comment.dart
+// lib/models/like.dart
 import 'package:json_annotation/json_annotation.dart';
 import 'user.dart';
 
-part 'comment.g.dart';
+part 'like.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Comment {
+class Like {
   @JsonKey(name: '_id')
   final String id;
   @JsonKey(name: 'post_id')
   final String postId;
   @JsonKey(name: 'user_id')
   final UserRef user;
-  final String content;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
-  @JsonKey(name: 'updated_at')
-  final DateTime updatedAt;
 
-  Comment({
+  Like({
     required this.id,
     required this.postId,
     required this.user,
-    required this.content,
     required this.createdAt,
-    required this.updatedAt,
   });
 
-  factory Comment.fromJson(Map<String, dynamic> json) => _$CommentFromJson(json);
-  Map<String, dynamic> toJson() => _$CommentToJson(this);
+  factory Like.fromJson(Map<String, dynamic> json) => _$LikeFromJson(json);
+  Map<String, dynamic> toJson() => _$LikeToJson(this);
 }

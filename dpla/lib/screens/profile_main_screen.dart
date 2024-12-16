@@ -27,7 +27,7 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
   void initState() {
     super.initState();
 
-    // Safely initialize animation controller and scale animation
+    // Initialize animation controller and scale animation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -39,10 +39,9 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.forward(); // Start the animation AFTER build
+      _controller.forward();
+      _fetchLocation();
     });
-
-    _fetchLocation();
   }
 
   @override
@@ -55,19 +54,28 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
     final user = ref.read(userProvider).user;
     if (user?.location?.latitude != null && user?.location?.longitude != null) {
       try {
+        // Fetch placemark data
         List<Placemark> placemarks = await placemarkFromCoordinates(
           user!.location!.latitude,
           user.location!.longitude,
         );
 
-        final place = placemarks.first;
-        setState(() {
-          _userLocation = "${place.locality}, ${place.country}";
-        });
+        // Extract city and country from the first placemark
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+          setState(() {
+            _userLocation = "${place.locality ?? 'Unknown city'}, ${place.country ?? 'Unknown country'}";
+          });
+        } else {
+          setState(() {
+            _userLocation = 'Location not found';
+          });
+        }
       } catch (e) {
         setState(() {
-          _userLocation = 'Location unavailable';
+          _userLocation = 'Failed to fetch location';
         });
+        debugPrint('Error fetching location: $e');
       }
     } else {
       setState(() {
@@ -204,8 +212,8 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
 
   Widget _buildLogoutItem() {
     return ListTile(
-      leading:  Icon(Icons.logout, color: Colors.purple[400]),
-      title:  Text('Logout', style: TextStyle(fontSize: 16,)),
+      leading: const Icon(Icons.logout, color: Colors.purple),
+      title: const Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       onTap: () => _showLogoutDialog(context),
     );
   }

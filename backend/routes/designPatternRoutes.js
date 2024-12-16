@@ -14,4 +14,7 @@ router.get('/', auth, designPatternController.getAllDesignPatterns);
 // @access  Private
 router.get('/:id', auth, designPatternController.getDesignPatternById);
 
+// Get all design patterns or search based on query
+router.get('/search', auth, designPatternController.getDesignPatterns);
+
 module.exports = router;

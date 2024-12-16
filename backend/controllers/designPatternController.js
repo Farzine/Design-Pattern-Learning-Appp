@@ -29,3 +29,21 @@ exports.getDesignPatternById = async (req, res, next) => {
     next(err);
   }
 };
+
+
+exports.getDesignPatterns = async (req, res, next) => {
+  try {
+    const { search } = req.query;
+    let query = {};
+
+    if (search) {
+      query = { $text: { $search: search } }; // Text search query
+    }
+
+    const designPatterns = await DesignPattern.find(query);
+    res.json({ patterns: designPatterns });
+  } catch (err) {
+    console.error('Error fetching design patterns:', err.message);
+    next(err);
+  }
+};

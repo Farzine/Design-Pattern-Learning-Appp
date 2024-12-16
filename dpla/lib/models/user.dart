@@ -43,6 +43,18 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
+
+@JsonSerializable()
+class UserRef {
+  final String name;
+
+
+  UserRef({required this.name});
+  factory UserRef.fromJson(Map<String, dynamic> json) => _$UserRefFromJson(json);
+  Map<String, dynamic> toJson() => _$UserRefToJson(this);
+}
+
+
 /// Represents a geographical location using GeoJSON.
 @JsonSerializable()
 class Location {
