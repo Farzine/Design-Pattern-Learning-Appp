@@ -2,8 +2,7 @@
 {
     "port": "${PORT}",
     "mongoURI": "${MONGO_URI}",
-    "jwtSecret": "${JWT_SECRET}",
-    "openAIKey": "${OPENAI_API_KEY}",
+    "jwtSecret": "${SECRET_KEY}",
     "rateLimit": {
       "windowMs": "${RATE_LIMIT_WINDOW_MS}",
       "max": "${RATE_LIMIT_MAX}"
