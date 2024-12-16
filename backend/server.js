@@ -33,7 +33,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const corsOptions ={
-    origin:process.env.CLIENT_ORIGIN || '*',
+    origin:'*',
     methods:['GET','POST','PUT','DELETE'],
     credentials:true,            
     optionSuccessStatus:200,
