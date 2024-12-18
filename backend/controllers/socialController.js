@@ -21,34 +21,38 @@ exports.getFeed = async (req, res, next) => {
     const following = await Follower.find({ follower_id: req.user.id }).select('following_id');
     const followingIds = following.map(f => f.following_id);
 
+    // Include the current user's ID in the list of IDs to fetch posts
+    const allUserIds = [...followingIds, req.user.id];
+
     // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Fetch posts with pagination, populate user details, likes, and comments
-    const posts = await Post.find({ user_id: { $in: followingIds } })
+    // Fetch posts from both the current user and followed users
+    const posts = await Post.find({ user_id: { $in: allUserIds } })
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('user_id', 'name')
+      .populate('user_id', 'name profile_picture_url') // User's name and profile picture
       .populate({
         path: 'likes',
-        populate: { path: 'user_id', select: 'name' },
+        populate: { path: 'user_id', select: 'name profile_picture_url' },
       })
       .populate({
         path: 'comments',
-        populate: { path: 'user_id', select: 'name' },
+        populate: { path: 'user_id', select: 'name profile_picture_url' },
       });
 
     // Optionally, get the total count for frontend pagination
-    const totalPosts = await Post.countDocuments({ user_id: { $in: followingIds } });
+    const totalPosts = await Post.countDocuments({ user_id: { $in: allUserIds } });
 
     // Format the response to match the required structure
     const formattedPosts = posts.map(post => ({
       _id: post._id,
       user_id: {
         name: post.user_id.name,
+        profile_picture_url: post.user_id.profile_picture_url,
       },
       content: post.content,
       created_at: post.created_at,
@@ -58,6 +62,7 @@ exports.getFeed = async (req, res, next) => {
         post_id: like.post_id,
         user_id: {
           name: like.user_id.name,
+          profile_picture_url: like.user_id.profile_picture_url,
         },
         created_at: like.created_at,
       })),
@@ -66,6 +71,7 @@ exports.getFeed = async (req, res, next) => {
         post_id: comment.post_id,
         user_id: {
           name: comment.user_id.name,
+          profile_picture_url: comment.user_id.profile_picture_url,
         },
         content: comment.content,
         created_at: comment.created_at,

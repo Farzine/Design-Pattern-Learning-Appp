@@ -1,12 +1,10 @@
-// lib/screens/home_screen.dart
-
-import 'package:dpla/models/comment.dart';
-import 'package:dpla/models/like.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/providers/post_provider.dart';
+import 'package:dpla/providers/user_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/post.dart';
+import 'user_profile_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -16,6 +14,8 @@ class HomeScreen extends ConsumerWidget {
     final postState = ref.watch(postFeedProvider);
     final posts = postState.posts;
 
+    final userListState = ref.watch(userListProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -23,85 +23,172 @@ class HomeScreen extends ConsumerWidget {
         elevation: 4,
         backgroundColor: Colors.purple[100],
       ),
-      body: Column(
-        children: [
-          // Create Post Section
-          _buildCreatePostSection(context, ref),
-          const Divider(height: 1),
-          Expanded(
-            child: postState.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : postState.error != null
-                    ? Center(child: Text('Error: ${postState.error}'))
-                    : posts.isEmpty
-                        ? const Center(child: Text('No posts available'))
-                        : ListView.builder(
-                            itemCount: posts.length,
-                            padding: const EdgeInsets.all(16.0),
-                            itemBuilder: (context, index) {
-                              final post = posts[index];
-                              return _buildPostCard(context, ref, post);
-                            },
-                          ),
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(postFeedProvider.notifier).loadFeed();
+          await ref.read(userListProvider.notifier).fetchUsers();
+        },
+        child: ListView(
+          children: [
+            // Create Post Section
+            _buildCreatePostSection(context, ref),
+
+            const Divider(height: 1),
+
+            // Friend Suggestions Section
+            if (userListState.isLoading)
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (userListState.error != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(child: Text('Error: ${userListState.error}')),
+              )
+            else if (userListState.users.isNotEmpty)
+              _buildFriendSuggestionSection(context, userListState.users),
+
+            const Divider(height: 1),
+
+            // Posts Section
+            if (postState.isLoading)
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (postState.error != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(child: Text('Error: ${postState.error}')),
+              )
+            else if (posts.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: Text('No posts available')),
+              )
+            else
+              ...posts.map((post) => _buildPostCard(context, ref, post)).toList(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCreatePostSection(BuildContext context, WidgetRef ref) {
     final TextEditingController postController = TextEditingController();
-    final avatarUrl = 'https://via.placeholder.com/150'; // Replace with user's avatar URL if available
+    const avatarUrl = 'https://via.placeholder.com/150';
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 2,
-      shape: const RoundedRectangleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: NetworkImage(avatarUrl),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(avatarUrl),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 controller: postController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "What's on your mind?",
                   border: InputBorder.none,
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
-                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () {
-                final content = postController.text.trim();
-                if (content.isNotEmpty) {
-                  ref.read(postFeedProvider.notifier).createPost(content);
-                  postController.clear();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple[400],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              final content = postController.text.trim();
+              if (content.isNotEmpty) {
+                ref.read(postFeedProvider.notifier).createPost(content);
+                postController.clear();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple[400],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: const Text('Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-          ],
+            child: const Text('Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFriendSuggestionSection(BuildContext context, List<dynamic> users) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            'People You May Know',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
+        SizedBox(
+          height: 140,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => UserProfileScreen(userId: user.id)),
+                  );
+                },
+                child: _buildUserSuggestionItem(user),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserSuggestionItem(dynamic user) {
+    return Container(
+      width: 150,
+      margin: const EdgeInsets.only(left: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 40,
+            backgroundImage: const AssetImage('assets/logo.png') as ImageProvider,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            user.name,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            user.email,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -114,11 +201,10 @@ class HomeScreen extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Info Row
             Row(
               children: [
                 CircleAvatar(
@@ -139,37 +225,22 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 10),
-            // Post Content
-            Text(
-              post.content,
-              style: const TextStyle(fontSize: 16, height: 1.4),
-            ),
+            Text(post.content, style: const TextStyle(fontSize: 16, height: 1.4)),
             const SizedBox(height: 10),
-            // Post Image (Optional)
-            // If your posts can have images, include them here
-            // Example:
-            // post.imageUrl != null
-            //     ? Padding(
-            //         padding: const EdgeInsets.only(top: 10.0),
-            //         child: Image.network(post.imageUrl!),
-            //       )
-            //     : Container(),
-            // Likes and Comments Count
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${post.likes.length} Likes',
+                  '${post.likes.length} ${post.likes.length == 1 ? 'Like' : 'Likes'}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 Text(
-                  '${post.comments.length} Comments',
+                  '${post.comments.length} ${post.comments.length == 1 ? 'Comment' : 'Comments'}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
             const Divider(height: 20),
-            // Action Buttons Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -189,13 +260,8 @@ class HomeScreen extends ConsumerWidget {
                     _showCommentDialog(context, ref, post.id);
                   },
                 ),
-                // You can add more actions like Share, etc.
               ],
             ),
-            // Display Comments
-            if (post.comments.isNotEmpty) _buildCommentsSection(post.comments),
-            // Display Likes
-            if (post.likes.isNotEmpty) _buildLikesSection(post.likes),
           ],
         ),
       ),
@@ -249,94 +315,6 @@ class HomeScreen extends ConsumerWidget {
               }
             },
             child: const Text('Comment'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCommentsSection(List<Comment> comments) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: comments
-            .map(
-              (comment) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundImage:  const AssetImage('assets/logo.png') as ImageProvider,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '${comment.user.name} ',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                            ),
-                            TextSpan(
-                              text: comment.content,
-                              style: const TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildLikesSection(List<Like> likes) {
-    // Display first few likes and a count of additional likes
-    int displayCount = likes.length > 3 ? 3 : likes.length;
-    List<Widget> likeWidgets = likes.take(displayCount).map((like) {
-      return CircleAvatar(
-        radius: 10,
-        backgroundImage: const AssetImage('assets/logo.png') as ImageProvider,
-      );
-    }).toList();
-
-    if (likes.length > 3) {
-      likeWidgets.add(
-        CircleAvatar(
-          radius: 10,
-          backgroundColor: Colors.grey[300],
-          child: Text(
-            '+${likes.length - 3}',
-            style: const TextStyle(fontSize: 10, color: Colors.black),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Row(
-        children: [
-          Stack(
-            children: likeWidgets.asMap().entries.map((entry) {
-              int idx = entry.key;
-              Widget avatar = entry.value;
-              return Positioned(
-                left: idx * 15.0,
-                child: avatar,
-              );
-            }).toList(),
-          ),
-          const SizedBox(width: 50),
-          Text(
-            'Liked by ${likes.first.user.name} and ${likes.length - 1} others',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
       ),

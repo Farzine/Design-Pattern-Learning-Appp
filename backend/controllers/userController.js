@@ -132,3 +132,34 @@ exports.getUserFollowers = async (req, res, next) => {
     next(err);
   }
 };
+
+
+/**
+ * Fetch all users excluding the currently logged-in user
+ * @route   GET /api/users
+ * @access  Private
+ * @query   excludeCurrentUser (boolean) - Optional flag to exclude the current user
+ */
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const excludeCurrentUser = req.query.excludeCurrentUser === 'true';
+    const currentUserId = req.user.id;
+
+    let query = {};
+
+    // Exclude the currently logged-in user if the flag is true
+    if (excludeCurrentUser) {
+      query = { _id: { $ne: currentUserId } };
+    }
+
+    // Fetch users excluding password hashes
+    const users = await User.find(query)
+      .select('-password_hash') // Exclude sensitive field
+      .sort({ name: 1 }); // Sort users by name (optional)
+
+    res.json({ users });
+  } catch (err) {
+    console.error('Error fetching all users:', err.message);
+    next(err);
+  }
+};

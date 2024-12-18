@@ -15,19 +15,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  /// Checks token and navigates to the appropriate screen.
-  Future<void> _checkTokenStatus() async {
-    final token = await TokenStorage.getToken();
-
-    if (token != null) {
-      // Navigate to Home Screen if token exists
-      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-    } else {
-      // Navigate to Login Screen if no token exists
-      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-    }
-  }
-
   /// Checks if the user has already seen the onboarding screens.
   Future<void> _checkOnboardingStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -42,12 +29,29 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  // /// Checks token and navigates to the appropriate screen.
+  // Future<void> _checkTokenStatus() async {
+  //   final token = await TokenStorage.getToken();
+
+  //   if (token != null) {
+  //     // Navigate to Home Screen if token exists
+  //     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+  //   } else {
+  //     // Navigate to Login Screen if no token exists
+  //     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  //   }
+  // }
+
+  
+
   @override
   void initState() {
     super.initState();
     // Simulate a short delay for splash effect
-    Timer(const Duration(seconds: 2), _checkOnboardingStatus);
-    Timer(const Duration(seconds: 2), _checkTokenStatus);
+    Timer(const Duration(seconds: 2), () async {
+      await _checkOnboardingStatus();
+      // await _checkTokenStatus();
+    });
   }
 
   @override

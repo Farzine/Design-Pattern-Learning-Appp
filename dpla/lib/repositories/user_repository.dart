@@ -4,6 +4,7 @@ import 'package:dpla/core/exception.dart';
 import 'package:dpla/core/token_storage.dart';
 import 'package:dpla/models/user.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:dpla/models/user_suggestion.dart';
 
 class UserRepository {
   final Dio _dio;
@@ -144,4 +145,38 @@ class UserRepository {
       throw ApiException(e.toString());
     }
   }
+
+   Future<List<UserSuggestion>> fetchUsers() async {
+    try {
+      final token = await TokenStorage.getToken();
+      final response = await _dio.get('/users',
+          options: Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200) {
+        final data = response.data as List;
+        return data.map((json) => UserSuggestion.fromJson(json)).toList();
+      } else {
+        throw ApiException('Failed to fetch users');
+      }
+    } catch (e) {
+      throw ApiException(e.toString());
+    }
+  }
+
+  Future<UserSuggestion> fetchUserById(String userId) async {
+  try {
+    final token = await TokenStorage.getToken();
+    final response = await _dio.get(
+      '/users/$userId',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+
+    if (response.statusCode == 200) {
+      return UserSuggestion.fromJson(response.data);
+    } else {
+      throw ApiException('Failed to fetch user details');
+    }
+  } catch (e) {
+    throw ApiException(e.toString());
+  }
+}
 }

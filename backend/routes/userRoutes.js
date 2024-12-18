@@ -58,4 +58,9 @@ router.post('/:id/unfollow', auth, userController.unfollowUser);
 // Route for fetching followers of a user
 router.get('/:id/followers', auth, userController.getUserFollowers);
 
+// @route   GET /api/users
+// @desc    Get all users (exclude current user if desired)
+// @access  Private
+router.get('/users', auth, userController.getAllUsers);
+
 module.exports = router;
