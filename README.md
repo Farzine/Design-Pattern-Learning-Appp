@@ -1,6 +1,8 @@
 
 <h1>Design Pattern Learning App</h1>
 
+
+
 <p>Welcome to the <strong>Design Pattern Learning App</strong>, a platform where users can learn about various software design patterns, practice coding exercises, engage with a social feed similar to a simplified social network, and connect with fellow learners.</p>
 
 <h2>Table of Contents</h2>
@@ -142,7 +144,7 @@ flutter run
 <p>Use the app on your emulator or device. Register, login, and explore the feed and friend suggestions.</p>
 
 <h2 id="screenshots">Video demo</h2>
-<p>https://github.com/user-attachments/assets/114ad7b2-280e-4c58-b447-2e08fcb015ba</p>
+<p>https://github.com/user-attachments/assets/df393e87-ef1b-4ace-aabc-bf9a53a61827</p>
 
 <h2 id="challenges-faced">Challenges Faced</h2>
 <p>Understanding and implementing the repository + Riverpod architecture was initially unfamiliar. Integrating the backend API with the frontend required careful attention to data models and token handling. Managing asynchronous states with Riverpod and ensuring a responsive, error-tolerant UI also took practice. Through these challenges, we improved our understanding of architecture, state management, and frontend-backend integration.</p>
