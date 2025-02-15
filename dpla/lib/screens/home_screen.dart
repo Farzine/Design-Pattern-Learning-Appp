@@ -5,23 +5,94 @@ import 'package:dpla/providers/user_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/post.dart';
 import 'user_profile_screen.dart';
+import 'profile_screen.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
     final postState = ref.watch(postFeedProvider);
     final posts = postState.posts;
-
     final userListState = ref.watch(userListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: "Search...",
+                  border: InputBorder.none,
+                ),
+              )
+            : const Text(
+                'Home',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
         centerTitle: true,
-        elevation: 4,
         backgroundColor: Colors.purple[100],
+        elevation: 0,
+        actions: [
+          if (!_isSearching)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  _isSearching = true;
+                });
+              },
+            ),
+          if (_isSearching)
+            IconButton(
+              icon: const Icon(Icons.cancel),
+              onPressed: () {
+                setState(() {
+                  _isSearching = false;
+                  _searchController.clear();
+                });
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              // Handle notification action
+            },
+          ),
+        ],
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const ProfileScreen(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+                  return SlideTransition(position: offsetAnimation, child: child);
+                },
+              ),
+            );
+          },
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -29,11 +100,12 @@ class HomeScreen extends ConsumerWidget {
           await ref.read(userListProvider.notifier).fetchUsers();
         },
         child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           children: [
             // Create Post Section
             _buildCreatePostSection(context, ref),
 
-            const Divider(height: 1),
+            const SizedBox(height: 16),
 
             // Friend Suggestions Section
             if (userListState.isLoading)
@@ -49,7 +121,7 @@ class HomeScreen extends ConsumerWidget {
             else if (userListState.users.isNotEmpty)
               _buildFriendSuggestionSection(context, userListState.users),
 
-            const Divider(height: 1),
+            const SizedBox(height: 16),
 
             // Posts Section
             if (postState.isLoading)
@@ -68,7 +140,9 @@ class HomeScreen extends ConsumerWidget {
                 child: Center(child: Text('No posts available')),
               )
             else
-              ...posts.map((post) => _buildPostCard(context, ref, post)).toList(),
+              ...posts
+                  .map((post) => _buildPostCard(context, ref, post))
+                  .toList(),
           ],
         ),
       ),
@@ -77,22 +151,31 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildCreatePostSection(BuildContext context, WidgetRef ref) {
     final TextEditingController postController = TextEditingController();
-    const avatarUrl = 'https://via.placeholder.com/150';
+    const avatarUrl = 'https://avatar.iran.liara.run/public/6';
 
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 4),
+        ],
+      ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 20,
+            radius: 24,
             backgroundImage: NetworkImage(avatarUrl),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(30),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -115,13 +198,15 @@ class HomeScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple[400],
+              backgroundColor: Colors.purple[600],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text('Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Post',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -133,7 +218,7 @@ class HomeScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
             'People You May Know',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -150,7 +235,8 @@ class HomeScreen extends ConsumerWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (ctx) => UserProfileScreen(userId: user.id)),
+                    MaterialPageRoute(
+                        builder: (ctx) => UserProfileScreen(userId: user.id)),
                   );
                 },
                 child: _buildUserSuggestionItem(user),
@@ -171,7 +257,8 @@ class HomeScreen extends ConsumerWidget {
         children: [
           CircleAvatar(
             radius: 40,
-            backgroundImage: const AssetImage('assets/logo.png') as ImageProvider,
+            backgroundImage:
+                const AssetImage('assets/hi.gif') as ImageProvider,
           ),
           const SizedBox(height: 8),
           Text(
@@ -199,7 +286,7 @@ class HomeScreen extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
+      elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -209,13 +296,15 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: const AssetImage('assets/logo.png') as ImageProvider,
+                  backgroundImage:
+                      const AssetImage('assets/aa.png') as ImageProvider,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     post.user.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 Text(
@@ -224,9 +313,10 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(post.content, style: const TextStyle(fontSize: 16, height: 1.4)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+            Text(post.content,
+                style: const TextStyle(fontSize: 16, height: 1.5)),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -247,7 +337,7 @@ class HomeScreen extends ConsumerWidget {
                 _buildActionButton(
                   icon: Icons.thumb_up_alt_outlined,
                   label: 'Like',
-                  color: Colors.purple[400]!,
+                  color: Colors.purple[600]!,
                   onTap: () {
                     ref.read(postFeedProvider.notifier).likePost(post.id);
                   },
@@ -255,7 +345,7 @@ class HomeScreen extends ConsumerWidget {
                 _buildActionButton(
                   icon: Icons.comment_outlined,
                   label: 'Comment',
-                  color: Colors.purple[400]!,
+                  color: Colors.purple[600]!,
                   onTap: () {
                     _showCommentDialog(context, ref, post.id);
                   },
@@ -283,7 +373,8 @@ class HomeScreen extends ConsumerWidget {
           children: [
             Icon(icon, color: color),
             const SizedBox(width: 4),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            Text(label,
+                style: TextStyle(color: color, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -310,7 +401,9 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () {
               final content = commentController.text.trim();
               if (content.isNotEmpty) {
-                ref.read(postFeedProvider.notifier).commentOnPost(postId, content);
+                ref
+                    .read(postFeedProvider.notifier)
+                    .commentOnPost(postId, content);
                 Navigator.pop(ctx);
               }
             },

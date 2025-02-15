@@ -44,11 +44,10 @@ class InviteFriendsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
 
-          // Illustration (Placeholder Image)
           Expanded(
             child: Center(
               child: Image.asset(
-                'assets/logo.png', // Replace with your illustration asset
+                'assets/aa.png', 
                 height: 200,
               ),
             ),

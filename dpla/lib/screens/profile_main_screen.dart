@@ -27,7 +27,7 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
   void initState() {
     super.initState();
 
-    // Initialize animation controller and scale animation
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -54,13 +54,11 @@ class _ProfileMainScreenState extends ConsumerState<ProfileMainScreen>
     final user = ref.read(userProvider).user;
     if (user?.location?.latitude != null && user?.location?.longitude != null) {
       try {
-        // Fetch placemark data
         List<Placemark> placemarks = await placemarkFromCoordinates(
           user!.location!.latitude,
           user.location!.longitude,
         );
 
-        // Extract city and country from the first placemark
         if (placemarks.isNotEmpty) {
           final place = placemarks.first;
           setState(() {

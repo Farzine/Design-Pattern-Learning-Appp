@@ -1,5 +1,3 @@
-// lib/models/user_progress.dart
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_progress.g.dart';
@@ -7,7 +5,7 @@ part 'user_progress.g.dart';
 @JsonSerializable()
 class UserProgress {
   final String designPattern;
-  final int progress; // Progress percentage
+  final int progress; 
   final int points;
   final bool learningCompleted;
   final int practiceCompleted;

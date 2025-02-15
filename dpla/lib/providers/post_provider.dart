@@ -1,4 +1,3 @@
-// lib/providers/post_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/post.dart';
 import 'package:dpla/repositories/post_repository.dart';
@@ -52,8 +51,6 @@ class PostFeedNotifier extends StateNotifier<PostFeedState> {
   Future<void> likePost(String postId) async {
     try {
       await _repository.likePost(postId);
-      // Refresh feed or update post in-place
-      // For simplicity, just reload the feed
       await loadFeed();
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -72,7 +69,6 @@ class PostFeedNotifier extends StateNotifier<PostFeedState> {
 
   Future<void> createPost(String content) async {
   try {
-    // Optionally set isLoading to true if you want a loading indicator
     await _repository.createPost(content);
     // After posting, reload feed
     await loadFeed();

@@ -1,5 +1,3 @@
-// lib/screens/notification_page.dart
-
 import 'package:flutter/material.dart';
 
 class NotificationPage extends StatelessWidget {

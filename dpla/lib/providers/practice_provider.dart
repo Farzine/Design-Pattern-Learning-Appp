@@ -1,10 +1,7 @@
-// lib/providers/practice_provider.dart
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/practice_question.dart';
 import 'package:dpla/repositories/practice_repository.dart';
 import 'package:dio/dio.dart';
-import 'package:dpla/core/exception.dart';
 
 // Define the state for practice
 class PracticeState {
@@ -70,7 +67,6 @@ class PracticeNotifier extends StateNotifier<PracticeState> {
   Future<void> submitAnswers(Map<int, String> answers) async {
     state = state.copyWith(isSubmitting: true, error: null, feedback: null);
     try {
-      // Convert Map<int, String> to List<String> based on question order
       final sortedEntries = answers.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
       final answersList = List<String>.from(sortedEntries.map((e) => e.value));
       final feedback = await _repository.submitAnswers(patternId, answersList);

@@ -1,10 +1,8 @@
-// lib/providers/auth_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/repositories/auth_repository.dart';
 import 'package:dpla/models/user.dart';
 import 'package:dpla/core/api_client.dart';
 
-/// Represents the authentication state.
 class AuthState {
   final User? user;
   final bool isLoading;
@@ -21,7 +19,6 @@ class AuthState {
   }
 }
 
-/// Provides the ApiClient instance.
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
 /// Provides the AuthRepository instance, injecting the Dio client from ApiClient.
@@ -30,18 +27,15 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(apiClient.client);
 });
 
-/// Provides the AuthNotifier.
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
 
-/// Manages authentication state.
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier(this._repository) : super(AuthState());
 
   final AuthRepository _repository;
 
-  /// Logs in the user.
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

@@ -1,5 +1,3 @@
-// lib/screens/practice_session_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/practice_question.dart';
@@ -20,7 +18,6 @@ class PracticeSessionScreen extends ConsumerStatefulWidget {
 }
 
 class _PracticeSessionScreenState extends ConsumerState<PracticeSessionScreen> {
-  // Map to store selected answers. Key: question index, Value: selected option
   final Map<int, String> _selectedAnswers = {};
 
   @override

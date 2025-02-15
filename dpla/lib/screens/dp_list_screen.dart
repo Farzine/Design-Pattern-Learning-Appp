@@ -1,12 +1,12 @@
 // lib/screens/dp_list_screen.dart
 
+import 'package:dpla/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/providers/design_pattern_provider.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/screens/read_design_pattern_screen.dart';
 import 'package:dpla/screens/practice_session_screen.dart';
-import '../widgets/custom_nav_bar.dart';
 import 'dart:async';
 
 class DpListScreen extends ConsumerStatefulWidget {
@@ -19,11 +19,11 @@ class DpListScreen extends ConsumerStatefulWidget {
 class _DpListScreenState extends ConsumerState<DpListScreen> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    // Listen to search input changes
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -48,9 +48,74 @@ class _DpListScreenState extends ConsumerState<DpListScreen> {
     final designPatternState = ref.watch(designPatternProvider);
 
     return Scaffold(
-      appBar: CustomNavBar(
-        logoPath: 'assets/logo.png', // Path to your logo asset
-        searchController: _searchController,
+      appBar: AppBar(
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: "Search...",
+                  border: InputBorder.none,
+                ),
+              )
+            : const Text(
+                'Desing Patterns',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+        centerTitle: true,
+        backgroundColor: Colors.purple[100],
+        elevation: 0,
+        actions: [
+          if (!_isSearching)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  _isSearching = true;
+                });
+              },
+            ),
+          if (_isSearching)
+            IconButton(
+              icon: const Icon(Icons.cancel),
+              onPressed: () {
+                setState(() {
+                  _isSearching = false;
+                  _searchController.clear();
+                });
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              // Handle notification action
+            },
+          ),
+        ],
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const ProfileScreen(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+                  return SlideTransition(position: offsetAnimation, child: child);
+                },
+              ),
+            );
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -138,7 +203,8 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ReadDesignPatternScreen(pattern: widget.pattern),
+                          builder: (context) =>
+                              ReadDesignPatternScreen(pattern: widget.pattern),
                         ),
                       );
                     },
@@ -148,7 +214,8 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    child: const Text('Read', style: TextStyle(color: Colors.white)),
+                    child: const Text('Read',
+                        style: TextStyle(color: Colors.white)),
                   ),
                   const SizedBox(width: 8.0),
                   ElevatedButton(
@@ -170,7 +237,8 @@ class _DesignPatternCardState extends State<DesignPatternCard> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    child: const Text('Practice', style: TextStyle(color: Colors.white)),
+                    child: const Text('Practice',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

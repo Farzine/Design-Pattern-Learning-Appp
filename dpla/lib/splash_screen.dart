@@ -1,5 +1,3 @@
-// lib/splash_screen.dart
-
 import 'dart:async';
 import 'package:dpla/core/token_storage.dart';
 import 'package:flutter/material.dart';

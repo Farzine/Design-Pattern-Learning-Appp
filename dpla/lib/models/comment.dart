@@ -1,4 +1,3 @@
-// lib/models/comment.dart
 import 'package:json_annotation/json_annotation.dart';
 import 'user.dart';
 

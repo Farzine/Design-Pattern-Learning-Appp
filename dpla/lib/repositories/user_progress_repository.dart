@@ -1,5 +1,3 @@
-// lib/repositories/user_progress_repository.dart
-
 import 'package:dio/dio.dart';
 import 'package:dpla/models/user_progress.dart';
 import 'package:dpla/core/exception.dart';
@@ -9,10 +7,10 @@ class UserProgressRepository {
   final Dio _dio;
 
   UserProgressRepository(this._dio) {
-    _dio.options.baseUrl = 'http://10.201.40.230:5000/api'; // Replace with your backend URL
+    _dio.options.baseUrl = 'http://10.201.41.126:5000/api'; 
   }
 
-  /// Fetches all user progress entries.
+
   Future<List<UserProgress>> fetchAllUserProgress() async {
     try {
       final token = await TokenStorage.getToken();
@@ -23,7 +21,7 @@ class UserProgressRepository {
         final data = response.data['progress'] as List;
         return data.map((json) => UserProgress.fromJson(json)).toList();
       } else if (response.statusCode == 404) {
-        return []; // No progress found
+        return []; 
       } else {
         throw ApiException('Failed to fetch user progress');
       }
@@ -34,7 +32,7 @@ class UserProgressRepository {
     }
   }
 
-  /// Fetches progress for a specific design pattern.
+
   Future<UserProgress> fetchProgressByDesignPattern(String patternId) async {
     try {
       final token = await TokenStorage.getToken();

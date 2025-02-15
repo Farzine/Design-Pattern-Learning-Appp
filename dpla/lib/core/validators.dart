@@ -1,7 +1,7 @@
 class Validators {
   static String? validateEmail(String? val) {
     if (val == null || val.isEmpty) return 'Email is required';
-    // Simple email validation
+   
     if (!RegExp(r".+@.+\..+").hasMatch(val)) return 'Enter a valid email';
     return null;
   }

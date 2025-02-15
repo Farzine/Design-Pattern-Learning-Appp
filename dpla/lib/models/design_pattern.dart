@@ -1,4 +1,3 @@
-// lib/models/design_pattern.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'design_pattern.g.dart';

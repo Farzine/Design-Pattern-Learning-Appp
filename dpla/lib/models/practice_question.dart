@@ -1,4 +1,3 @@
-//models/practice_question.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'practice_question.g.dart';

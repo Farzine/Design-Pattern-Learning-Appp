@@ -1,7 +1,3 @@
-
-
-// lib/widgets/circular_bottom_navigation.dart
-
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'tab_item.dart';

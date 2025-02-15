@@ -1,11 +1,8 @@
-// lib/providers/design_pattern_provider.dart
 import 'package:dpla/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/repositories/design_pattern_repository.dart';
-import 'package:dpla/core/exception.dart';
 
-// Define the state for design patterns
 class DesignPatternState {
   final List<DesignPattern> patterns;
   final bool isLoading;

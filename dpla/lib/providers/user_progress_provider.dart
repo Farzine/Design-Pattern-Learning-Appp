@@ -1,11 +1,9 @@
-// lib/providers/user_progress_provider.dart
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/user_progress.dart';
 import 'package:dpla/repositories/user_progress_repository.dart';
 import 'package:dio/dio.dart';
 
-// Provider for Dio instance
+
 final dioProvider = Provider<Dio>((ref) {
   return Dio();
 });

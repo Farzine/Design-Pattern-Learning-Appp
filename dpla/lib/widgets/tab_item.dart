@@ -1,25 +1,3 @@
-// //tab_item.dart
-// import 'package:flutter/material.dart';
-
-// class TabItem {
-//   IconData icon;
-//   String title;
-//   Color circleColor;
-//   Color? circleStrokeColor;
-//   TextStyle labelStyle;
-
-//   TabItem(
-//     this.icon,
-//     this.title,
-//     this.circleColor, MaterialAccentColor blueAccent, TextStyle textStyle, {
-//     this.circleStrokeColor,
-//     this.labelStyle = const TextStyle(fontWeight: FontWeight.bold),
-//   });
-// }
-
-
-// lib/widgets/tab_item.dart
-
 import 'package:flutter/material.dart';
 
 class TabItem {

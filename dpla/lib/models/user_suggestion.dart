@@ -1,4 +1,3 @@
-// lib/models/user_suggestion.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_suggestion.g.dart';
@@ -11,6 +10,8 @@ class UserSuggestion {
   final String email;
   final DateTime? birthdate;
   final int points;
+
+  var isFollowing;
 
   UserSuggestion({
     required this.id,

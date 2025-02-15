@@ -1,4 +1,4 @@
-//api_client.dart
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -7,7 +7,7 @@ class ApiClient {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   ApiClient() {
-    _dio.options.baseUrl = 'http://10.201.40.230:5000/api';
+    _dio.options.baseUrl = 'http://10.201.41.126:5000/api';
     _dio.options.headers['Content-Type'] = 'application/json';
 
     _dio.interceptors.add(InterceptorsWrapper(

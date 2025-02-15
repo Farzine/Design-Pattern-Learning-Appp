@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:dpla/models/auth_response.dart';
-import 'package:dpla/models/user.dart';
-import 'package:dpla/core/api_client.dart';
 import 'package:dpla/core/token_storage.dart';
 
 class AuthRepository {
@@ -25,7 +23,7 @@ class AuthRepository {
         'birthdate': birthdate.toIso8601String(),
         'location': {
           'type': 'Point',
-          'coordinates': [longitude, latitude], // [longitude, latitude]
+          'coordinates': [longitude, latitude], 
         },
       });
       print('Register data: $response');

@@ -1,5 +1,3 @@
-// lib/widgets/custom_nav_bar.dart
-
 import 'package:flutter/material.dart';
 import '../screens/notification_screen.dart';
 

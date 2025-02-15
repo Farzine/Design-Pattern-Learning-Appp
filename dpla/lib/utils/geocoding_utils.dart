@@ -1,4 +1,3 @@
-// lib/utils/geocoding_utils.dart
 import 'package:geocoding/geocoding.dart';
 
 class GeocodingUtils {
@@ -9,7 +8,6 @@ class GeocodingUtils {
 
       if (placemarks.isNotEmpty) {
         final Placemark placemark = placemarks.first;
-        // Construct the address string
         String address = '${placemark.name}, ${placemark.locality}, ${placemark.administrativeArea}, ${placemark.country}';
         return address;
       } else {

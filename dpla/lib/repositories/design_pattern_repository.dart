@@ -1,4 +1,3 @@
-//repositories/design_pattern_repository.dart
 import 'package:dio/dio.dart';
 import 'package:dpla/models/design_pattern.dart';
 import 'package:dpla/core/exception.dart';
@@ -8,7 +7,7 @@ class DesignPatternRepository {
   final Dio _dio;
 
   DesignPatternRepository(this._dio) {
-    _dio.options.baseUrl = 'http://10.201.40.230:5000/api';
+    _dio.options.baseUrl = 'http://10.201.41.126:5000/api';
   }
 
   Future<List<DesignPattern>> fetchDesignPatterns() async {

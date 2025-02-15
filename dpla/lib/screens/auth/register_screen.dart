@@ -1,6 +1,3 @@
-
-// lib/screens/auth/register_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -11,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/geocoding_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_routes.dart';
+import 'package:lottie/lottie.dart' hide Marker;
 
 class RegisterScreen extends ConsumerStatefulWidget {
   static const routeName = '/register';
@@ -31,14 +29,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController _birthdateController = TextEditingController();
 
   DateTime? _selectedBirthdate;
-  LatLng _selectedLocation = const LatLng(37.7749, -122.4194); // Default location (San Francisco)
+  LatLng _selectedLocation = const LatLng(37.7749, -122.4194); 
   String _selectedAddress = 'Fetching location...';
 
-  bool _isSubmitting = false; // Indicates if form submission is in progress
-  bool _isMapLoading = true; // Indicates if the map is still loading
-  GoogleMapController? _mapController; // Controller for GoogleMap
-
-  Set<Marker> _markers = {}; // Set of markers on the map
+  bool _isSubmitting = false; 
+  bool _isMapLoading = true;  
+  GoogleMapController? _mapController; 
+  Set<Marker> _markers = {}; 
 
   @override
   void initState() {
@@ -294,267 +291,274 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
+  /// Dismiss the keyboard by tapping outside input fields
+  void _dismissKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.purple.shade100, // Light purple background
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Top Gradient Section with Welcome Text
-            Container(
-              height: MediaQuery.of(context).size.height * 0.25, // 25% of screen height
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFF261FF), Color(0xFFC81ADE)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
+    return GestureDetector(
+      onTap: _dismissKeyboard,
+      child: Scaffold(
+        backgroundColor: Colors.purple.shade100, // Light purple background
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Top Section with Lottie Animation (register.json)
+              // This replaces the old purple gradient
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.35,
+                width: double.infinity,
+                child: Lottie.asset(
+                  'assets/register.json', // Path to your Lottie JSON file
+                  fit: BoxFit.cover,
+                  repeat: true,
+                  animate: true,
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    "Welcome",
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Sign Up to Continue",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            // Registration Form
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey, // Form key for validation
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30), // Spacing
-
-                    // Full Name Input Field
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: "User Name",
-                        prefixIcon: const Icon(Icons.person),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none, // Remove border
+              // Registration Form
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey, // Form key for validation
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Welcome Text
+                      const Text(
+                        "Register",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20), // Spacing
-
-                    // Email Input Field
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: "E-mail",
-                        prefixIcon: const Icon(Icons.email),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none, // Remove border
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Sign Up to Continue",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
                         ),
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                        if (!emailRegex.hasMatch(value.trim())) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20), // Spacing
+                      const SizedBox(height: 24), // Spacing
 
-                    // Password Input Field
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        prefixIcon: const Icon(Icons.lock),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none, // Remove border
+                      // Full Name Input Field
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: "User Name",
+                          prefixIcon: const Icon(Icons.person),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none, // Remove border
+                          ),
                         ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your name';
+                          }
+                          return null;
+                        },
                       ),
-                      obscureText: true, // Hide password
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a password';
-                        }
-                        if (value.trim().length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20), // Spacing
+                      const SizedBox(height: 20), // Spacing
 
-                    // Birthdate Input Field
-                    TextFormField(
-                      controller: _birthdateController,
-                      decoration: InputDecoration(
-                        labelText: "Select Birthdate",
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none, // Remove border
+                      // Email Input Field
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: "E-mail",
+                          prefixIcon: const Icon(Icons.email),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none, // Remove border
+                          ),
                         ),
-                        suffixIcon: const Icon(Icons.arrow_drop_down), // Dropdown icon
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                          if (!emailRegex.hasMatch(value.trim())) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
-                      readOnly: true, // Prevent manual editing
-                      onTap: () => _selectBirthdate(context), // Open date picker
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please select your birthdate';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20), // Spacing
+                      const SizedBox(height: 20), // Spacing
 
-                    // Title for Location Selection
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
+                      // Password Input Field
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: "Password",
+                          prefixIcon: const Icon(Icons.lock),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none, // Remove border
+                          ),
+                        ),
+                        obscureText: true, // Hide password
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          if (value.trim().length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20), // Spacing
+
+                      // Birthdate Input Field
+                      TextFormField(
+                        controller: _birthdateController,
+                        decoration: InputDecoration(
+                          labelText: "Select Birthdate",
+                          prefixIcon: const Icon(Icons.calendar_today),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none, // Remove border
+                          ),
+                          suffixIcon: const Icon(Icons.arrow_drop_down), // Dropdown icon
+                        ),
+                        readOnly: true, // Prevent manual editing
+                        onTap: () => _selectBirthdate(context), // Open date picker
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please select your birthdate';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20), // Spacing
+
+                      // Title for Location Selection
+                      const Text(
                         "Select Location",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.purple,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10), // Spacing
+                      const SizedBox(height: 10), // Spacing
 
-                    // Google Maps Section with Loader
-                    SizedBox(
-                      height: 300, // Fixed height for the map
-                      child: Stack(
-                        children: [
-                          GoogleMap(
-                            initialCameraPosition: CameraPosition(
-                              target: _selectedLocation,
-                              zoom: 14.0,
+                      // Google Maps Section with Loader
+                      SizedBox(
+                        height: 250, // Slightly reduced for better spacing
+                        child: Stack(
+                          children: [
+                            GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: _selectedLocation,
+                                zoom: 14.0,
+                              ),
+                              onMapCreated: (GoogleMapController controller) {
+                                _mapController = controller;
+                                setState(() {
+                                  _isMapLoading = false; // Hide loader once map is ready
+                                });
+                              },
+                              markers: _markers, // Current markers
+                              onTap: _onMapTapped, // Handle map taps
+                              myLocationEnabled: true, // Show user's location
+                              myLocationButtonEnabled: true, // Show location button
                             ),
-                            onMapCreated: (GoogleMapController controller) {
-                              _mapController = controller;
-                              setState(() {
-                                _isMapLoading = false; // Hide loader once map is ready
-                              });
+                            if (_isMapLoading)
+                              const Center(
+                                child: CircularProgressIndicator(), // Loader while map is loading
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10), // Spacing
+
+                      // Display Selected Address
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50, // Light blue background
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: Colors.blue.shade200), // Border color
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on, color: Colors.blue), // Location icon
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedAddress, // Display fetched address
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24), // Spacing
+
+                      // Submit Button
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _register, // Disable button if submitting
+                          style: ElevatedButton.styleFrom(
+                            shape: const CircleBorder(), // Circular button
+                            padding: const EdgeInsets.all(20),
+                            backgroundColor: Colors.purple, // Button color
+                          ),
+                          child: _isSubmitting
+                              ? const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Loader inside button
+                                )
+                              : const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Navigation to Login
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Already have an account?'),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacementNamed(context, AppRoutes.login);
                             },
-                            markers: _markers, // Current markers
-                            onTap: _onMapTapped, // Handle map taps
-                            myLocationEnabled: true, // Show user's location
-                            myLocationButtonEnabled: true, // Show location button
-                          ),
-                          if (_isMapLoading)
-                            const Center(
-                              child: CircularProgressIndicator(), // Loader while map is loading
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10), // Spacing
-
-                    // Display Selected Address
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50, // Light blue background
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(color: Colors.blue.shade200), // Border color
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.blue), // Location icon
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _selectedAddress, // Display fetched address
-                              style: const TextStyle(fontSize: 16),
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                color: Colors.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 24), // Spacing
-
-                    // Submit Button
-                    ElevatedButton(
-                      onPressed: _isSubmitting ? null : _register, // Disable button if submitting
-                      style: ElevatedButton.styleFrom(
-                        shape: const CircleBorder(), // Circular button
-                        padding: const EdgeInsets.all(20),
-                        backgroundColor: Colors.purple, // Button color
-                      ),
-                      child: _isSubmitting
-                          ? const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white), // Loader inside button
-                            )
-                          : const Icon(
-                              Icons.arrow_forward,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                    ),
-                    const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Already have an account?'),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/login');
-                        },
-                        child: const Text('Login'),
-                      ),
+                      const SizedBox(height: 16), // Final spacing
                     ],
                   ),
-                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
-

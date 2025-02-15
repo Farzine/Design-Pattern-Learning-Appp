@@ -1,4 +1,3 @@
-// lib/repositories/comment_repository.dart
 import 'package:dio/dio.dart';
 import 'package:dpla/core/token_storage.dart';
 import 'package:dpla/core/exception.dart';
@@ -7,7 +6,7 @@ class CommentRepository {
   final Dio _dio;
 
   CommentRepository(this._dio) {
-    _dio.options.baseUrl = 'http://10.201.40.230:5000/api';
+    _dio.options.baseUrl = 'http://10.201.41.126:5000/api';
   }
 
   Future<void> commentOnPost(String postId, String content) async {

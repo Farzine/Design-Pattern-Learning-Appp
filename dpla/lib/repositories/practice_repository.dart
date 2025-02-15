@@ -1,5 +1,3 @@
-// lib/repositories/practice_repository.dart
-
 import 'package:dio/dio.dart';
 import 'package:dpla/models/practice_question.dart';
 import 'package:dpla/core/exception.dart';
@@ -9,7 +7,7 @@ class PracticeRepository {
   final Dio _dio;
 
   PracticeRepository(this._dio) {
-    _dio.options.baseUrl = 'http://10.201.40.230:5000/api'; // Replace with your backend URL
+    _dio.options.baseUrl = 'http://10.201.41.126:5000/api'; 
   }
 
   Future<List<PracticeQuestion>> fetchPracticeQuestions(String patternId) async {

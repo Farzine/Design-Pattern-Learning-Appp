@@ -1,8 +1,7 @@
-// lib/models/post.dart
 import 'package:json_annotation/json_annotation.dart';
 import 'comment.dart';
 import 'like.dart';
-import 'user.dart';
+
 
 part 'post.g.dart';
 
@@ -11,7 +10,7 @@ class Post {
   @JsonKey(name: '_id')
   final String id;
   @JsonKey(name: 'user_id')
-  final UserRef user; // user_id populated with name, profile_picture_url
+  final UserRef user; 
   final String content;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;

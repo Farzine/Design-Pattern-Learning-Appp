@@ -1,4 +1,3 @@
-//main_navigation.dart
 import 'package:dpla/screens/profile_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/dashboard_screen.dart';

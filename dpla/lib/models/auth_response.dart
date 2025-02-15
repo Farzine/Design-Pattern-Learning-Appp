@@ -1,4 +1,3 @@
-//auth_response.dart
 import 'package:json_annotation/json_annotation.dart';
 import 'package:dpla/models/user.dart';
 
