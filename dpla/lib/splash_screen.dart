@@ -3,6 +3,7 @@ import 'package:dpla/core/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dpla/routes/app_routes.dart';
+import 'package:lottie/lottie.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,7 +13,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   /// Checks if the user has already seen the onboarding screens.
   Future<void> _checkOnboardingStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -40,26 +40,24 @@ class _SplashScreenState extends State<SplashScreen> {
   //   }
   // }
 
-  
-
   @override
   void initState() {
     super.initState();
     // Simulate a short delay for splash effect
-    Timer(const Duration(seconds: 2), () async {
+    Timer(const Duration(seconds: 5), () async {
       await _checkOnboardingStatus();
-      // await _checkTokenStatus();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple[400],
-      body: Center(
-        child: Image.asset(
-          'assets/logo.png',
-          height: 150,
+      body: SizedBox.expand(
+        child: Lottie.asset(
+          'assets/initial.json', 
+          fit: BoxFit.cover,
+          repeat: true,
+          animate: true,
         ),
       ),
     );
