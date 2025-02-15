@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dpla/routes/app_routes.dart';
+import 'package:dpla/controllers/routes/app_routes.dart';
 import 'package:dpla/config/theme.dart';
 
 void main() {
