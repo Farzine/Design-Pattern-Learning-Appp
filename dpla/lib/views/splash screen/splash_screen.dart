@@ -43,8 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate a short delay for splash effect
-    Timer(const Duration(seconds: 5), () async {
+    Timer(const Duration(seconds: 6), () async {
       await _checkOnboardingStatus();
     });
   }
@@ -52,12 +51,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox.expand(
-        child: Lottie.asset(
-          'assets/initial.json', 
-          fit: BoxFit.cover,
-          repeat: true,
-          animate: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple.shade600, Colors.deepPurple.shade400],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1 / 1,
+            child: Lottie.asset(
+              'assets/initial.json',
+              fit: BoxFit.cover,
+              repeat: true,
+              animate: true,
+            ),
+          ),
         ),
       ),
     );

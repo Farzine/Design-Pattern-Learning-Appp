@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dpla/models/models/dp/practice_question.dart';
 import 'package:dpla/controllers/providers/dp/practice_provider.dart';
+import 'package:lottie/lottie.dart'; 
 
 class PracticeSessionScreen extends ConsumerStatefulWidget {
   final String designPatternId;
@@ -36,7 +37,12 @@ class _PracticeSessionScreenState extends ConsumerState<PracticeSessionScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: practiceState.isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: Lottie.asset(
+                  'assets/loader.json', 
+                  fit: BoxFit.cover,
+                  repeat: true,
+                  animate: true,
+                ),)
             : practiceState.error != null
                 ? Center(child: Text(practiceState.error!))
                 : practiceState.questions.isEmpty
